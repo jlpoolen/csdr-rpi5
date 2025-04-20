@@ -821,6 +821,8 @@ void fractional_decimator_ff(float* input, float* output, int input_size, fracti
     However, I think I should just rather do a continuous big buffer.
 */
 
+// FFT-related function (not used)
+#if 0
 void apply_fir_fft_cc(FFT_PLAN_T* plan, FFT_PLAN_T* plan_inverse, complexf* taps_fft, complexf* last_overlap, int overlap_size)
 {
     //use the overlap & add method for filtering
@@ -857,6 +859,7 @@ void apply_fir_fft_cc(FFT_PLAN_T* plan, FFT_PLAN_T* plan_inverse, complexf* taps
     }
 
 }
+#endif
 
 /*
            __  __       _                          _       _       _

@@ -40,11 +40,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MAX_M(x,y) (((x)<(y))?(y):(x))
 
 /*
-We're not using Fourier Transforms, harnesing NEON is simply for audio processing
-*/
-typedef void FFT_PLAN_T;
-
-/*
    _____                      _
   / ____|                    | |
  | |     ___  _ __ ___  _ __ | | _____  __
@@ -220,7 +215,12 @@ shift_unroll_data_t shift_unroll_init(float rate, int size);
 
 int log2n(int x);
 int next_pow2(int x);
+
+// FFT-related function (not used)
+#if 0
 void apply_fir_fft_cc(FFT_PLAN_T* plan, FFT_PLAN_T* plan_inverse, complexf* taps_fft, complexf* last_overlap, int overlap_size);
+#endif
+
 void gain_ff(float* input, float* output, int input_size, float gain);
 float get_power_f(float* input, int input_size, int decimation);
 float get_power_c(complexf* input, int input_size, int decimation);
