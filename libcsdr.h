@@ -28,6 +28,13 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#ifdef __ARM_NEON
+#define USE_NEON 1
+#else
+#define USE_NEON 0
+#endif
+
+
 #pragma once
 #define MIN_M(x,y) (((x)>(y))?(y):(x))
 #define MAX_M(x,y) (((x)<(y))?(y):(x))
