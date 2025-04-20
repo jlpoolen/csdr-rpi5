@@ -7,4 +7,6 @@
 - Built `libcsdr.a` with ARMv8-A NEON (`-march=armv8-a+simd`)
 - Commented out FFT-dependent functions
 - Confirmed compilation with warnings only (e.g., unused params, strict-aliasing)
+## 9:15 AM PD
+- test_multiply works
 
