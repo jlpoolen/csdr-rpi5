@@ -40,6 +40,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MAX_M(x,y) (((x)<(y))?(y):(x))
 
 /*
+We're not using Fourier Transforms, harnesing NEON is simply for audio processing
+*/
+typedef void FFT_PLAN_T;
+
+/*
    _____                      _
   / ____|                    | |
  | |     ___  _ __ ___  _ __ | | _____  __

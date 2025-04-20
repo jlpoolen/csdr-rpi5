@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #ifdef __ARM_NEON
 #include <arm_neon.h>
+#endif // __ARM_NEON
 
 #include <stdio.h>
 #include <time.h>
@@ -41,6 +42,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "predefined.h"
 #include <assert.h>
 #include <stdarg.h>
+#include <math.h>       // for M_PI
+#include <string.h>     // for bzero (or consider memset as it's more portable)
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+#define bzero(ptr, size) memset((ptr), 0, (size))
 
 /*
            _           _                   __                  _   _
