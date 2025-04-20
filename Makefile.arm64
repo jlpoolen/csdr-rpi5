@@ -1,0 +1,20 @@
+# Makefile.arm64
+# $Header$
+# Builds libcsdr.a with ARM NEON support for Raspberry Pi 5 (aarch64)
+
+CC = gcc
+CFLAGS = -O3 -march=armv8-a+simd -mfpu=neon -ffast-math -Wall -Wextra -std=c99 -fPIC
+LDFLAGS =
+
+OBJS = libcsdr.o
+
+all: libcsdr.a
+
+libcsdr.o: libcsdr.c libcsdr.h
+	$(CC) $(CFLAGS) -c libcsdr.c -o libcsdr.o
+
+libcsdr.a: $(OBJS)
+	ar rcs libcsdr.a $(OBJS)
+
+clean:
+	rm -f *.o *.a
