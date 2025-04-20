@@ -8,3 +8,6 @@ tags
 dumpvect.*.vect
 *.swp
 grc_tests/top_block.py
+test_multiply
+test_neon
+libcsdr.a
