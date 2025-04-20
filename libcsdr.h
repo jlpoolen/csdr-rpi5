@@ -427,3 +427,7 @@ int bfsk_demod_cf(complexf* input, float* output, int input_size, complexf* mark
  * Multiply a vector of real floats by a scalar value.
  */
 void multiply_realvector_with_scalar(float* a, float b, float* result, int len);
+/*
+ * Multiply a vector of complex floats by a real scalar.
+ */
+void multiply_complexvector_with_scalar_cc(complexf* a, float b, complexf* result, int len);
