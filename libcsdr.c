@@ -30,6 +30,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef __ARM_NEON
 #include <arm_neon.h>
 #endif // __ARM_NEON
+#define DEBUG_SERIAL_LINE_DECODER(x) do {} while (0)
+
 
 #include <stdio.h>
 #include <time.h>
@@ -49,6 +51,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define M_PI 3.14159265358979323846
 #endif
 #define bzero(ptr, size) memset((ptr), 0, (size))
+
 
 /*
            _           _                   __                  _   _
@@ -100,7 +103,7 @@ float firdes_wkernel_hamming(float rate)
 }
 
 
-float firdes_wkernel_boxcar(float rate)
+float firdes_wkernel_boxcar(__attribute__((unused)) float rate)
 {   //"Dummy" window kernel, do not use; an unwindowed FIR filter may have bad frequency response
     return 1.0;
 }
@@ -140,7 +143,7 @@ void firdes_lowpass_f(float *output, int length, float cutoff_rate, window_t win
     //  cutoff_rate is (cutoff frequency/sampling frequency)
     //Explanation at Chapter 16 of dspguide.com
     int middle=length/2;
-    float temp;
+    (void)temp;
     float (*window_function)(float)  = firdes_get_window_kernel(window);
     output[middle]=2*PI*cutoff_rate*window_function(0);
     for(int i=1; i<=middle; i++) //@@firdes_lowpass_f: calculate taps
@@ -419,7 +422,7 @@ float shift_addfast_cc(complexf *input, complexf* output, int input_size, shift_
     //fprintf(stderr, "shift_addfast_cc: input_size = %d\n", input_size);
     float cos_start=cos(starting_phase);
     float sin_start=sin(starting_phase);
-    float register cos_vals_0, cos_vals_1, cos_vals_2, cos_vals_3,
+    float cos_vals_0, cos_vals_1, cos_vals_2, cos_vals_3,
         sin_vals_0, sin_vals_1, sin_vals_2, sin_vals_3,
         dsin_0 = d->dsin[0], dsin_1 = d->dsin[1], dsin_2 = d->dsin[2], dsin_3 = d->dsin[3],
         dcos_0 = d->dcos[0], dcos_1 = d->dcos[1], dcos_2 = d->dcos[2], dcos_3 = d->dcos[3];
@@ -682,7 +685,7 @@ void rational_resampler_get_lowpass_f(float* output, int output_size, int interp
     firdes_lowpass_f(output, output_size, cutoff/2, window);
 }
 
-float inline fir_one_pass_ff(float* input, float* taps, int taps_length)
+inline float fir_one_pass_ff(float* input, float* taps, int taps_length)
 {
     float acc=0;
     for(int i=0;i<taps_length;i++) acc+=taps[i]*input[i]; //@fir_one_pass_ff
@@ -711,7 +714,7 @@ old_fractional_decimator_ff_t old_fractional_decimator_ff(float* input, float* o
         if(previous_index_high==index_high-1) result_low=result_high; //if we step less than 2.0 then we do already have the result for the FIR filter for that index
         else result_low=fir_one_pass_ff(input+index_high-1,taps,taps_length);
         result_high=fir_one_pass_ff(input+index_high,taps,taps_length);
-        float register rate_between_samples=where-index_high+1;
+        float rate_between_samples=where-index_high+1;
         output[oi++]=result_low*(1-rate_between_samples)+result_high*rate_between_samples;
         previous_index_high=index_high;
     }
@@ -1086,7 +1089,11 @@ complexf fmdemod_quadri_cf(complexf* input, float* output, int input_size, float
 inline int is_nan(float f)
 {
     //http://stackoverflow.com/questions/570669/checking-if-a-double-or-float-is-nan-in-c
-    unsigned u = *(unsigned*)&f;
+    //unsigned u = *(unsigned*)&f;
+    union { float f; unsigned u; } pun;
+    pun.f = f;
+    unsigned u = pun.u;
+
     return (u&0x7F800000) == 0x7F800000 && (u&0x7FFFFF); // Both NaN and qNan.
 }
 
@@ -1550,7 +1557,7 @@ char psk31_varicode_decoder_push(unsigned long long* status_shr, unsigned char s
 {
     *status_shr=((*status_shr)<<1)|(!!symbol); //shift new bit in shift register
     //fprintf(stderr,"*status_shr = %llx\n", *status_shr);
-    if((*status_shr)&0xFFF==0) return 0;
+    if (((*status_shr) & 0xFFF) == 0)
     for(int i=0;i<n_psk31_varicode_items;i++)
     {
         //fprintf(stderr,"| i = %d | %llx ?= %llx | bitsall = %d\n", i, psk31_varicode_items[i].code<<2, (*status_shr)&psk31_varicode_masklen_helper[(psk31_varicode_items[i].bitcount+4)&63], (psk31_varicode_items[i].bitcount+4)&63);
@@ -2559,5 +2566,12 @@ int trivial_vectorize()
 void multiply_realvector_with_scalar(float* a, float b, float* result, int len) {
     for (int i = 0; i < len; ++i) {
         result[i] = a[i] * b;
+    }
+}
+// another test function
+void multiply_complexvector_with_scalar_cc(complexf* a, float b, complexf* result, int len) {
+    for (int i = 0; i < len; ++i) {
+        result[i].r = a[i].r * b;
+        result[i].i = a[i].i * b;
     }
 }
