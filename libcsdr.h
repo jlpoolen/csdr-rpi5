@@ -422,3 +422,8 @@ void pack_bits_1to8_u8_u8(unsigned char* input, unsigned char* output, int input
 unsigned char pack_bits_8to1_u8_u8(unsigned char* input);
 void dbpsk_decoder_c_u8(complexf* input, unsigned char* output, int input_size);
 int bfsk_demod_cf(complexf* input, float* output, int input_size, complexf* mark_filter, complexf* space_filter, int taps_length);
+
+/*
+ * Multiply a vector of real floats by a scalar value.
+ */
+void multiply_realvector_with_scalar(float* a, float b, float* result, int len);

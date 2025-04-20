@@ -2552,3 +2552,12 @@ int trivial_vectorize()
     }
     return c[0];
 }
+
+/*
+ * Multiply a vector of floats by a scalar (scalar fallback version).
+ */
+void multiply_realvector_with_scalar(float* a, float b, float* result, int len) {
+    for (int i = 0; i < len; ++i) {
+        result[i] = a[i] * b;
+    }
+}

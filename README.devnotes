@@ -3,4 +3,8 @@
 - Enabled NEON optimization for Raspberry Pi 5
 - Added Makefile.arm64
 6:28 AM PD created and successfully tested test_neon & committed
+## 2025-04-20 7:16 AM PD
+- Built `libcsdr.a` with ARMv8-A NEON (`-march=armv8-a+simd`)
+- Commented out FFT-dependent functions
+- Confirmed compilation with warnings only (e.g., unused params, strict-aliasing)
 
