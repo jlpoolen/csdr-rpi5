@@ -3,7 +3,7 @@
 # Builds libcsdr.a with ARM NEON support for Raspberry Pi 5 (aarch64)
 
 CC = gcc
-CFLAGS = -O3 -march=armv8-a+simd -mfpu=neon -ffast-math -Wall -Wextra -std=c99 -fPIC
+CFLAGS = -O3 -march=armv8-a+simd -ffast-math -Wall -Wextra -std=c99 -fPIC
 LDFLAGS =
 
 OBJS = libcsdr.o
