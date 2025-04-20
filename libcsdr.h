@@ -431,3 +431,5 @@ void multiply_realvector_with_scalar(float* a, float b, float* result, int len);
  * Multiply a vector of complex floats by a real scalar.
  */
 void multiply_complexvector_with_scalar_cc(complexf* a, float b, complexf* result, int len);
+void repeat_u8(unsigned char* input, unsigned char* output, int input_size, int times);
+void gaussian_noise_c(complexf* output, int output_size);

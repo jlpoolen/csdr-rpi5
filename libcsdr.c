@@ -2582,3 +2582,11 @@ void multiply_complexvector_with_scalar_cc(complexf* a, float b, complexf* resul
         result[i].q = a[i].q * b;  // imaginary part
     }
 }
+
+void repeat_u8(unsigned char* input, unsigned char* output, int input_size, int times) {
+    for (int i = 0; i < input_size; i++) {
+        for (int t = 0; t < times; t++) {
+            output[i * times + t] = input[i];
+        }
+    }
+}
