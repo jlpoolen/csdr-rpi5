@@ -701,7 +701,7 @@ old_fractional_decimator_ff_t old_fractional_decimator_ff(float* input, float* o
     int oi=0;
     int index_high;
     float where=d.remain;
-    float result_high, result_low;
+    float result_high = 0.0f, result_low = 0.0f;
     if(where==0.0) //in the first iteration index_high may be zero (so using the item index_high-1 would lead to invalid memory access).
     {
         output[oi++]=fir_one_pass_ff(input,taps,taps_length);
@@ -1837,7 +1837,7 @@ void pack_bits_1to8_u8_u8(unsigned char* input, unsigned char* output, int input
 
 unsigned char pack_bits_8to1_u8_u8(unsigned char* input)
 {
-    unsigned char output;
+    unsigned char output = 0;
     for(int i=0;i<8;i++)
     {
         output<<=1;
@@ -2578,7 +2578,7 @@ void multiply_realvector_with_scalar(float* a, float b, float* result, int len) 
 // another test function
 void multiply_complexvector_with_scalar_cc(complexf* a, float b, complexf* result, int len) {
     for (int i = 0; i < len; ++i) {
-        result[i].r = a[i].r * b;
-        result[i].i = a[i].i * b;
+        result[i].i = a[i].i * b;  // real part
+        result[i].q = a[i].q * b;  // imaginary part
     }
 }
