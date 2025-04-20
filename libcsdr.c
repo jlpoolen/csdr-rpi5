@@ -143,6 +143,7 @@ void firdes_lowpass_f(float *output, int length, float cutoff_rate, window_t win
     //  cutoff_rate is (cutoff frequency/sampling frequency)
     //Explanation at Chapter 16 of dspguide.com
     int middle=length/2;
+    float temp;
     (void)temp;
     float (*window_function)(float)  = firdes_get_window_kernel(window);
     output[middle]=2*PI*cutoff_rate*window_function(0);
@@ -623,8 +624,8 @@ rational_resampler_ff_t rational_resampler_ff(float *input, float *output, int i
     //Theory: http://www.dspguru.com/dsp/faqs/multirate/resampling
     //oi: output index, i: tap index
     int output_size=input_size*interpolation/decimation;
-    int oi;
-    int startingi, delayi;
+    int oi = 0;
+    int startingi = 0, delayi = 0;
     //fprintf(stderr,"rational_resampler_ff | interpolation = %d | decimation = %d\ntaps_length = %d | input_size = %d | output_size = %d | last_taps_delay = %d\n",interpolation,decimation,taps_length,input_size,output_size,last_taps_delay);
     for (oi=0; oi<output_size; oi++) //@rational_resampler_ff (outer loop)
     {
@@ -776,8 +777,8 @@ void fractional_decimator_ff(float* input, float* output, int input_size, fracti
     for(;(index_high=ceilf(d->where))+d->num_poly_points+d->taps_length<input_size;d->where+=d->rate) //@fractional_decimator_ff
     {
         //d->num_poly_points above is theoretically more than we could have here, but this makes the spectrum look good
-        int sxifirst = FD_INDEX_LOW + d->xifirst; 
-        int sxilast = FD_INDEX_LOW + d->xilast; 
+        //int sxifirst = FD_INDEX_LOW + d->xifirst; 
+        //int sxilast = FD_INDEX_LOW + d->xilast; 
         if(d->taps) 
             for(int wi=0;wi<d->num_poly_points;wi++) d->filtered_buf[wi] = fir_one_pass_ff(input+FD_INDEX_LOW+wi, d->taps, d->taps_length);
         else
@@ -1673,7 +1674,6 @@ char rtty_baudot_decoder_push(rtty_baudot_decoder_t* s, unsigned char symbol)
     return 0;
 }
 
-#define DEBUG_SERIAL_LINE_DECODER 0
 
 //What has not been checked:
 //  behaviour on 1.5 stop bits
@@ -1695,14 +1695,14 @@ void serial_line_decoder_f_u8(serial_line_t* s, float* input, unsigned char* out
         int i;
         for(i=1;i<input_size;i++) if(input[i] < 0 && input[i-1] > 0) { startbit_start=i; break; }
 
-        if(startbit_start == -1) { s->input_used += i; DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"sld:startbit_not_found (+%d)\n", s->input_used); return; }
-        DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"sld:startbit_found at %d (%d)\n", startbit_start, iabs_samples_helper + startbit_start);
+        if(startbit_start == -1) { s->input_used += i; DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"sld:startbit_not_found (+%d)\n", s->input_used)); return; }
+        DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"sld:startbit_found at %d (%d)\n", startbit_start, iabs_samples_helper + startbit_start));
 
         //If the stop bit would be too far so that we reached the end of the buffer, then we return failed.
         //The caller can rearrange the buffer so that the whole character fits into it.
         float all_bits = 1 + s->databits + s->stopbits;
-        DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"sld:all_bits = %f\n", all_bits);
-        if(startbit_start + s->samples_per_bits * all_bits >= input_size) { s->input_used += MAX_M(0,startbit_start-2); DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"sld:return_stopbit_too_far (+%d)\n", s->input_used); return; }
+        DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"sld:all_bits = %f\n", all_bits));
+        if(startbit_start + s->samples_per_bits * all_bits >= input_size) { s->input_used += MAX_M(0,startbit_start-2); DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"sld:return_stopbit_too_far (+%d)\n", s->input_used)); return; }
 
         //We do the actual sampling.
         int di; //databit counter
@@ -1711,26 +1711,26 @@ void serial_line_decoder_f_u8(serial_line_t* s, float* input, unsigned char* out
         {
             int databit_start = startbit_start + (1+di+(0.5*(1-s->bit_sampling_width_ratio))) * s->samples_per_bits;
             int databit_end   = startbit_start + (1+di+(0.5*(1+s->bit_sampling_width_ratio))) * s->samples_per_bits;
-            DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"sld:databit_start = %d (%d)\n", databit_start, iabs_samples_helper+databit_start);
-            DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"sld:databit_end   = %d (%d)\n", databit_end,   iabs_samples_helper+databit_end);
+            DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"sld:databit_start = %d (%d)\n", databit_start, iabs_samples_helper+databit_start));
+            DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"sld:databit_end   = %d (%d)\n", databit_end,   iabs_samples_helper+databit_end));
             float databit_acc = 0;
             for(i=databit_start;i<databit_end;i++) { databit_acc += input[i]; /*DEBUG_SERIAL_LINE_DECODER && fprintf(stderr, "%f (%f) ", input[i], databit_acc);*/ }
             //DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"\n");
-            DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"sld:databit_decision = %d\n", !!(databit_acc>0));
+            DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"sld:databit_decision = %d\n", !!(databit_acc>0)));
             shr=(shr<<1)|!!(databit_acc>0);
         }
-        DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"sld:shr = 0x%x, %d\n", shr, shr);
+        DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"sld:shr = 0x%x, %d\n", shr, shr));
 
         //We check if the stopbit is correct.
         int stopbit_start = startbit_start + (1+s->databits) * s->samples_per_bits + (s->stopbits * 0.5 * (1-s->bit_sampling_width_ratio)) * s->samples_per_bits;
         int stopbit_end   = startbit_start + (1+s->databits) * s->samples_per_bits + (s->stopbits * 0.5 * (1+s->bit_sampling_width_ratio)) * s->samples_per_bits;
-        DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"sld:stopbit_start = %d (%d)\n", stopbit_start, iabs_samples_helper+stopbit_start);
-        DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"sld:stopbit_end   = %d (%d)\n", stopbit_end,   iabs_samples_helper+stopbit_end);
+        DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"sld:stopbit_start = %d (%d)\n", stopbit_start, iabs_samples_helper+stopbit_start));
+        DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"sld:stopbit_end   = %d (%d)\n", stopbit_end,   iabs_samples_helper+stopbit_end));
         float stopbit_acc = 0;
-        for(i=stopbit_start;i<stopbit_end;i++) { stopbit_acc += input[i]; DEBUG_SERIAL_LINE_DECODER && fprintf(stderr, "%f (%f) ", input[i], stopbit_acc); }
-        DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"\n");
-        if(stopbit_acc<0) { s->input_used += MIN_M(startbit_start + 1, input_size); DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"sld:return_stopbit_faulty (+%d)\n", s->input_used); return; }
-        DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"sld:stopbit_found\n");
+        for(i=stopbit_start;i<stopbit_end;i++) { stopbit_acc += input[i]; DEBUG_SERIAL_LINE_DECODER(fprintf(stderr, "%f (%f) ", input[i], stopbit_acc)); }
+        DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"\n"));
+        if(stopbit_acc<0) { s->input_used += MIN_M(startbit_start + 1, input_size); DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"sld:return_stopbit_faulty (+%d)\n", s->input_used)); return; }
+        DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"sld:stopbit_found\n"));
 
         //we write the output sample
         if(s->databits <= 8) output[s->output_size] = shr;
@@ -1743,9 +1743,9 @@ void serial_line_decoder_f_u8(serial_line_t* s, float* input, unsigned char* out
         input += samples_used_up_now;
         input_size -= samples_used_up_now;
         iabs_samples_helper += samples_used_up_now;
-        if(!input_size) { DEBUG_SERIAL_LINE_DECODER && fprintf(stderr,"sld:return_no_more_input (+%d)\n", s->input_used); return; }
+        if(!input_size) { DEBUG_SERIAL_LINE_DECODER(fprintf(stderr,"sld:return_no_more_input (+%d)\n", s->input_used)); return; }
     }
-    DEBUG_SERIAL_LINE_DECODER && fprintf(stderr, "sld: >> output_size = %d  (+%d)\n", s->output_size, s->input_used);
+    DEBUG_SERIAL_LINE_DECODER(fprintf(stderr, "sld: >> output_size = %d  (+%d)\n", s->output_size, s->input_used));
 }
 
 void generic_slicer_f_u8(float* input, unsigned char* output, int input_size, int n_symbols)
@@ -2113,6 +2113,7 @@ char* timing_recovery_get_string_from_algorithm(timing_recovery_algorithm_t algo
 
 void init_bpsk_costas_loop_cc(bpsk_costas_loop_state_t* s, int decision_directed, float damping_factor, float bandwidth)
 {
+    (void)decision_directed;
     //fprintf(stderr, "init_bpsk_costas_loop_cc: bandwidth = %f, damping_factor = %f\n", bandwidth, damping_factor);
     //based on: http://gnuradio.squarespace.com/blog/2011/8/13/control-loop-gain-values.html
     float bandwidth_omega = 2*PI*bandwidth; //so that the bandwidth should be around 0.01 by default (2pi/100), and the damping_factor should be default 0.707
@@ -2221,7 +2222,7 @@ void bpsk_costas_loop_c1mc(complexf* input, complexf* output, int input_size, bp
 void simple_agc_cc(complexf* input, complexf* output, int input_size, float rate, float reference, float max_gain, float* current_gain)
 {
     float rate_1minus=1-rate;
-    int debugn = 0;
+    //int debugn = 0;
     for(int i=0;i<input_size;i++)
     {
         float amplitude = sqrt(input[i].i*input[i].i+input[i].q*input[i].q);
@@ -2319,9 +2320,10 @@ float normalized_timing_variance_u32_f(unsigned* input, float* temp, int input_s
         //find out which real sample index this input sample index is the nearest to.
         unsigned sinearest = (input[i]-initial_sample_offset) / samples_per_symbol;
         unsigned sinearest_remain = (input[i]-initial_sample_offset) % samples_per_symbol;
-        if(sinearest_remain>samples_per_symbol/2) sinearest++;
+        if(sinearest_remain> (unsigned int) (samples_per_symbol/2)) sinearest++;
         unsigned socorrect = initial_sample_offset+(sinearest*samples_per_symbol); //the sample offset which input[i] should have been, in order to sample at the maximum effect point
-        int sodiff = abs(socorrect-input[i]);
+        //int sodiff = abs(socorrect-input[i]);
+        int sodiff = (socorrect > input[i]) ? (socorrect - input[i]) : (input[i] - socorrect);
         float ndiff = (float)sodiff/samples_per_symbol;
 
         ndiff_rad[i] = ndiff*PI;
@@ -2464,7 +2466,8 @@ FILE* init_get_random_samples_f()
 void get_random_samples_f(float* output, int output_size, FILE* status)
 {
     int* pioutput = (int*)output;
-    fread((unsigned char*)output, sizeof(float), output_size, status);
+    size_t r = fread((unsigned char*)output, sizeof(float), output_size, status);
+    (void)r; // If ignoring result is intentional
     for(int i=0;i<output_size;i++)
     {
         float tempi = pioutput[i];
@@ -2475,7 +2478,8 @@ void get_random_samples_f(float* output, int output_size, FILE* status)
 void get_random_gaussian_samples_c(complexf* output, int output_size, FILE* status)
 {
     int* pioutput = (int*)output;
-    fread((unsigned char*)output, sizeof(complexf), output_size, status);
+    size_t r = fread((unsigned char*)output, sizeof(complexf), output_size, status);
+    (void)r; // If ignoring result is intentional
     for(int i=0;i<output_size;i++)
     {
         float u1 = 0.5+0.49999999*(((float)pioutput[2*i])/(float)INT_MAX);
@@ -2490,11 +2494,11 @@ int deinit_get_random_samples_f(FILE* status)
     return fclose(status);
 }
 
-int firdes_cosine_f(float* taps, int taps_length, int samples_per_symbol)
+void firdes_cosine_f(float* taps, int taps_length, int samples_per_symbol)
 {
     //needs a taps_length 2 × samples_per_symbol + 1
     int middle_i=taps_length/2;
-    for(int i=0;i<samples_per_symbol;i++) taps[middle_i+i]=taps[middle_i-i]=(1+cos(PI*i/(float)samples_per_symbol))/2;
+    for(int i=0;i<samples_per_symbol;i++) taps[middle_i+i] = taps[middle_i-i]=(1 + cos(PI * i / (float)samples_per_symbol)) / 2.0f;
     //for(int i=0;i<taps_length;i++) taps[i]=powf(taps[i],2);
     normalize_fir_f(taps, taps, taps_length);
 }
@@ -2514,6 +2518,7 @@ int firdes_rrc_f(float* taps, int taps_length, int samples_per_symbol, float bet
                 (PI*(i/(float)samples_per_symbol)*(1-powf(4*beta*(i/(float)samples_per_symbol),2)));
     }
     normalize_fir_f(taps, taps, taps_length);
+    return 0;
 }
 
 void plain_interpolate_cc(complexf* input, complexf* output, int input_size, int interpolation)
@@ -2538,6 +2543,7 @@ matched_filter_type_t matched_filter_get_type_from_string(char* input)
 float* add_ff(float* input1, float* input2, float* output, int input_size)
 {
     for(int i=0;i<input_size;i++) output[i]=input1[i]+input2[i];
+    return 0;
 }
 
 float* add_const_cc(complexf* input, complexf* output, int input_size, complexf x)
@@ -2547,6 +2553,7 @@ float* add_const_cc(complexf* input, complexf* output, int input_size, complexf 
         iof(output,i)=iof(input,i)+iofv(x);
         qof(output,i)=iof(input,i)+qofv(x);
     }
+    return 0;
 }
 
 int trivial_vectorize()

@@ -410,7 +410,7 @@ typedef enum matched_filter_type_e
 
 #define MATCHED_FILTER_DEFAULT MATCHED_FILTER_RRC
 
-int firdes_cosine_f(float* taps, int taps_length, int samples_per_symbol);
+void firdes_cosine_f(float* taps, int taps_length, int samples_per_symbol);
 int firdes_rrc_f(float* taps, int taps_length, int samples_per_symbol, float beta);
 matched_filter_type_t matched_filter_get_type_from_string(char* input);
 int apply_real_fir_cc(complexf* input, complexf* output, int input_size, float* taps, int taps_length);
